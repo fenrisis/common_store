@@ -60,3 +60,20 @@ cart_items = Table(
     Column("quantity", Integer, nullable=False),
     Column("added_at", TIMESTAMP, default=datetime.utcnow),
 )
+
+bank_accounts = Table(
+    "bank_accounts",
+    metadata,
+    Column("account_id", Integer, primary_key=True),
+    Column("balance", Numeric, nullable=False),
+    Column("user_id", Integer, ForeignKey("users.id"), nullable=False)
+)
+
+orders = Table(
+    "orders",
+    metadata,
+    Column("order_id", Integer, primary_key=True),
+    Column("customer_id", Integer, ForeignKey("users.id"), nullable=False),
+    Column("total_amount", Numeric, nullable=False)
+)
+

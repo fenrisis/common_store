@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import MetaData, Table, Column, Integer, String, TIMESTAMP, ForeignKey, JSON
+from sqlalchemy import MetaData, Table, Column, Integer, String, TIMESTAMP, ForeignKey, JSON, Numeric, DateTime, func
 
 metadata = MetaData()
 
@@ -74,6 +74,7 @@ orders = Table(
     metadata,
     Column("order_id", Integer, primary_key=True),
     Column("customer_id", Integer, ForeignKey("users.id"), nullable=False),
-    Column("total_amount", Numeric, nullable=False)
+    Column("total_amount", Numeric, nullable=False),
+    Column("status", String, nullable=False, server_default="new"),
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
 )
-

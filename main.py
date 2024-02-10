@@ -6,8 +6,8 @@ from schemas import ProductCreate, ProductUpdate, OrderCreate, OrderStatusUpdate
 from models.models import users, metadata, products, orders, cart_items
 from typing import Optional
 from database import engine
-from email_utils import get_user_email_by_id, get_user_email_by_order_id
-from smtp import send_email
+from telegram_utils import send_telegram_message
+from notification_utils import get_telegram_username_by_id, get_telegram_username_by_order_id
 
 metadata.create_all(bind=engine)
 
@@ -125,18 +125,16 @@ def delete_product(product_id: int):
 
 
 @app.post("/orders/")
-def create_order(order_data: OrderCreate):
+async def create_order(order_data: OrderCreate):
     with Session(engine) as session:
         stmt = insert(orders).values(customer_id=order_data.customer_id, total_amount=order_data.total_amount)
         session.execute(stmt)
         session.commit()
-        user_email = get_user_email_by_id(order_data.customer_id)
-        if user_email :
-            send_email(user_email, "Ваш заказ принят", "Спасибо за ваш заказ!")
-        send_order_to_queue(order_data.dict())
+        telegram_username = get_telegram_username_by_id(order_data.customer_id)
+        if telegram_username:
+            await send_telegram_message(telegram_username, "Ваш заказ принят. Спасибо за ваш заказ!")
         send_order_to_queue(order_data.dict())
         return {"status": "order created"}
-
 
 @app.get("/orders/{order_id}")
 def read_order(order_id: int):
@@ -149,7 +147,7 @@ def read_order(order_id: int):
 
 
 @app.put("/orders/{order_id}/status")
-def update_order_status(order_id: int, order_status: OrderStatusUpdate):
+async def update_order_status(order_id: int, order_status: OrderStatusUpdate):
     with Session(engine) as session:
         stmt = update(orders).where(orders.c.order_id == order_id).values(status=order_status.status)
         result = session.execute(stmt)
@@ -158,13 +156,11 @@ def update_order_status(order_id: int, order_status: OrderStatusUpdate):
             raise HTTPException(status_code=404, detail="Order not found")
         else:
             session.commit()
-            user_email = get_user_email_by_order_id(order_id)
-            if user_email :
-                send_email(user_email, "Статус вашего заказа изменен",
-                           f"Новый статус вашего заказа: {order_status.status}.")
+            telegram_username = get_telegram_username_by_order_id(order_id)
+            if telegram_username:
+                await send_telegram_message(telegram_username, f"Статус вашего заказа изменен: {order_status.status}.")
             send_update_order_to_queue(order_id, order_status.status)
             return {"status": "Order status updated"}
-
 
 @app.get("/orders/user/{customer_id}")
 def read_orders_by_customer(customer_id: int):

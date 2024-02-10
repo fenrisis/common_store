@@ -2,7 +2,7 @@
 name = "common-store"
 version = "0.1.0"
 description = ""
-authors = ["Leonid3# <116304748+fenrisis@users.noreply.github.com>"]
+authors = ["Leonid Zaitcev <antonfenrisis@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -12,6 +12,9 @@ uvicorn = "^0.27.0"
 sqlalchemy = "^2.0.25"
 alembic = "^1.13.1"
 psycopg2 = "^2.9.9"
+python-dotenv = "^1.0.1"
+pytest = "^8.0.0"
+pika = "^1.3.2"
 
 
 [build-system]
